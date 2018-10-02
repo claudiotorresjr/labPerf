@@ -33,6 +33,7 @@ static void usage(char *progname)
 
 int main (int argc, char *argv[]) 
 {
+
   LIKWID_MARKER_INIT;
   int c, passo=DEF_PASSO, n=DEF_LINS, m=DEF_MIN, M=DEF_MAX, hasM=0, hasm=0;
   double norma;
@@ -69,7 +70,6 @@ int main (int argc, char *argv[])
   if (!hasm && !hasM) m = M = n;
 
   for (n=m; n <= M; n+=passo) {
-    
     mPtr = geraMatPtr (n, n);
     mRow = geraMatRow (n, n);
     mCol = geraMatCol (n, n);
@@ -84,33 +84,31 @@ int main (int argc, char *argv[])
 #endif /* DEBUG */
 
     resPtr = (double *) calloc (n, sizeof(double));
-    LIKWID_MARKER_START("mult-matptr-por-vetor");
+    LIKWID_MARKER_START("matptr");
     multMatPtrVet (mPtr, vet, n, n, resPtr);
-    LIKWID_MARKER_STOP("mult-matptr-por-vetor");
-    
+    LIKWID_MARKER_STOP("matptr");
+
     resRow = (double *) calloc (n, sizeof(double));
-    LIKWID_MARKER_START("mult-matrow-por-vetor");
+    LIKWID_MARKER_START("matrow");
     multMatRowVet (mRow, vet, n, n, resRow);
-    LIKWID_MARKER_STOP("mult-matrow-por-vetor");
+    LIKWID_MARKER_STOP("matrow");
     
     resCol = (double *) calloc (n, sizeof(double));
-    LIKWID_MARKER_START("mult-matcol-por-vetor");
+    LIKWID_MARKER_START("matcol");
     multMatColVet (mCol, vet, n, n, resCol);
-    LIKWID_MARKER_STOP("mult-matcol-por-vetor");
+    LIKWID_MARKER_STOP("matcol");
     
     norma = normaMax(resRow, resPtr, n);
 
     norma = normaEucl(resCol, n);
+  
 
 #ifdef DEBUG
     prnVetor (resPtr, m);
     prnVetor (resRow, m);
     prnVetor (resCol, m);
 #endif /* DEBUG */
-
   }
-  
   LIKWID_MARKER_CLOSE;
-
 }
 

@@ -26,4 +26,4 @@ clean:
 
 purge distclean:   clean
 	@rm -f  $(PROG) *.o core a.out
-	@rm -f *.png
+#	@rm -f *.png
