@@ -2,15 +2,16 @@
 
 #executar como ./perfctr <core> <grupo> <passo> <inicio> <fim>
 #executa o programa matmult com matrizes de tamanho <inicio> até <fim> com passo <passo>
-#Deve-se passar o core a ser utilizado e indicador na linha de comando (L3CACHE, L3 e FLOPS_DP)
+#Deve-se passar o core a ser utilizado e indicador na linha de comando (L2CACHE, L3, FLOPS_DP e FLOPS_AVX)
 #o resultado é um arquivo com 4 colunas: ordem da matriz/vetor, resultados do indicador para cada uma 
 #das 3 funções
 
 LIKWID_CMD="likwid-perfctr -C $1 -g $2 -m -O"
 
-cache="L3 miss ratio"
+cache="L2 miss ratio"
 cachebw="L3 bandwidth"
-flops="Scalar MUOPS/s"
+flopsDP="Scalar MUOPS/s"
+flopsAVX="packed MUOPS/s"
 
 passo="$3"
 inicio="$4"
@@ -31,38 +32,44 @@ fim="$5"
 # Para obter topologia dos processadores
 #      likwid-topology -c -g
 
-if [ "$2" == "FLOPS_DP" ]
+#---Confere se a opçao é FLOPS_AVX. Se for, complia com a opçao -o3---
+if [ "$2" == "FLOPS_AVX" ]
 then
 	make avx
 else
 	make
 fi
 
+#---Confere os indicadores e salva o padrao que procuramos em cada um---
+if [ "$2" == "L2CACHE" ]
+then
+	padrao="$cache"
+elif [ "$2" == "L3" ]
+then
+	padrao="$cachebw"
+elif [ "$2" == "FLOPS_DP" ]
+then
+	padrao="$flopsDP"
+else
+	padrao="$flopsAVX"
+fi
+#-----------------------------------------------------------------------
+
 while [ "$inicio" -le "$fim" ]
 do
 	${LIKWID_CMD} ./matmult -n $inicio > temp.tmp
 
-	if [ "$2" == "L3CACHE" ]
-	then
-		printf "$((inicio*8*8)) "
-		printf "$(grep "$cache" temp.tmp | awk -F"," '{print $2}' | tr "\n" " ")\n"
-		escolha="$cache"
-	elif [ "$2" == "L3" ]
-	then
-		printf "$((inicio*8*8)) "
-		printf "$(grep "$cachebw" temp.tmp | awk -F"," '{print $2}' | tr "\n" " ")\n"
-		escolha="$cachebw"
-	else
-		printf "$((inicio*8*8)) "
-		printf "$(grep "$flops" temp.tmp | awk -F"," '{print $2}' | tr "\n" " ")\n"
-		escolha="$flops"
-	fi
+	printf "$((inicio*inicio*8)) "
+	printf "$(grep "$padrao" temp.tmp | awk -F"," '{print $2}' | tr "\n" " ")\n"
 
 	(( inicio += "$passo" ))
 
 done > $2.tmp
 
+#-----------------------------------------------------------------------
+#----------------gnuplot para fazer os graficos-------------------------
 gnuplot <<- EOF
+	set logscale x
 	set xlabel "N (bytes)"
 	set ylabel "$escolha"
 	set title "Medição de performance para $2"   
