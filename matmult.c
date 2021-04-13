@@ -7,7 +7,7 @@
 
 #include "matriz.h"
 
-/**
+/***
  * Exibe mensagem de erro indicando forma de uso do programa e termina
  * o programa.
  */
