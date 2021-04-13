@@ -1,3 +1,6 @@
+/* Laboratório Realizado para a disciplina de Introdução a Computação Cientifica */
+/* Feito em conjunto por ctj17 e gs17                                            */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
